@@ -1,0 +1,134 @@
+<script lang="ts">
+  import { app, useResource, act } from '../lib/state.svelte';
+  import { duration } from '../lib/format';
+  import Async from '../lib/ui/Async.svelte';
+  import Row from '../lib/ui/Row.svelte';
+  import Button from '../lib/ui/Button.svelte';
+  import { ask } from '../lib/ui/confirm.svelte';
+
+  const sys = useResource<any>('system/', { poll: 10000 });
+
+  const permLabels: Record<string, string> = {
+    settings: 'Modifier les réglages',
+    contacts: 'Contacts',
+    calls: 'Journal d’appels',
+    explorer: 'Fichiers',
+    downloader: 'Téléchargements',
+    parental: 'Contrôle parental',
+    pvr: 'Enregistrements TV',
+    home: 'Maison connectée',
+    camera: 'Caméras',
+    tv: 'Télévision',
+    profile: 'Profils',
+    vm: 'Machines virtuelles',
+    wdo: 'Accès distant',
+    player: 'Player',
+  };
+
+  async function reboot() {
+    const ok = await ask('Redémarrer la Freebox ?', 'Internet, le Wi-Fi et le téléphone seront coupés environ deux minutes.', 'Redémarrer');
+    if (!ok) return;
+    await act({ busy: 'Redémarrage demandé…', done: 'La Freebox redémarre' }, () => app.fb.api('POST', 'system/reboot/'));
+  }
+</script>
+
+<h1 class="page-title">{app.boxName}</h1>
+<p class="page-sub">Matériel, logiciel et droits accordés à Nox.</p>
+
+<Async r={sys} rows={5}>
+  {#snippet children(s)}
+    <Row label="Modèle" value={s.model_info?.pretty_name ?? s.board_name} />
+    <Row label="Version du logiciel" value={s.firmware_version} />
+    <Row label="Allumée depuis" value={s.uptime_val ? duration(s.uptime_val) : s.uptime} />
+    <Row label="Adresse MAC" value={s.mac} />
+    <Row label="Numéro de série" value={s.serial} />
+
+    {#if s.sensors?.length || s.fans?.length}
+      <h2 class="group-title">Températures</h2>
+      <div class="temps">
+        {#each s.sensors ?? [] as t (t.id)}
+          <div class="temp">
+            <span class="tv num">{t.value}<small>°C</small></span>
+            <span class="tl">{t.name}</span>
+            <span class="track"><span class="fill" style="transform:scaleX({Math.min(1, t.value / 100)})"></span></span>
+          </div>
+        {/each}
+        {#each s.fans ?? [] as f (f.id)}
+          <div class="temp">
+            <span class="tv num">{f.value}<small> tr/min</small></span>
+            <span class="tl">{f.name}</span>
+          </div>
+        {/each}
+      </div>
+    {/if}
+  {/snippet}
+</Async>
+
+<h2 class="group-title">Droits de Nox</h2>
+{#each Object.entries(app.permissions).filter(([k]) => permLabels[k]) as [k, v]}
+  <Row label={permLabels[k]} value={v ? 'Accordé' : 'Refusé'} />
+{/each}
+{#if app.permissions.settings === false}
+  <p class="warn">
+    Sans « Modifier les réglages », Nox ne peut que lire. Ouvre Freebox OS → Paramètres → Gestion des accès → Applications et coche ce droit pour Nox.
+  </p>
+{/if}
+
+<div class="actions">
+  <Button variant="ghost" onclick={reboot}>Redémarrer la Freebox</Button>
+</div>
+
+<style>
+  .temps {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border-block: 1px solid var(--line);
+    margin-top: 10px;
+  }
+  .temp {
+    background: var(--bg);
+    padding: 18px 16px 18px 0;
+    display: grid;
+    gap: 4px;
+  }
+  .tv {
+    font-size: 44px;
+    font-weight: 200;
+    font-variation-settings: 'wdth' 62;
+    line-height: 1;
+  }
+  .tv small {
+    font-size: 16px;
+    color: var(--t2);
+    margin-left: 2px;
+  }
+  .tl {
+    color: var(--t2);
+    font-size: 13px;
+  }
+  .track {
+    height: 2px;
+    background: var(--line-2);
+    margin-top: 10px;
+    margin-right: 16px;
+    overflow: hidden;
+  }
+  .fill {
+    display: block;
+    height: 100%;
+    background: var(--fg);
+    transform-origin: left;
+    transition: transform 900ms var(--ease);
+  }
+  .warn {
+    border: 1.5px solid var(--fg);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 18px 0 0;
+  }
+  .actions {
+    margin-top: 32px;
+  }
+</style>

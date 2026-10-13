@@ -1,0 +1,156 @@
+@import '@fontsource-variable/archivo/standard.css';
+
+:root {
+  /* Noir OLED pur : les pixels éteints restent éteints. */
+  --bg: #000000;
+  --fg: #ffffff;
+  --t2: #a8a8a8;
+  --t3: #6e6e6e;
+  --line: #1d1d1d;
+  --line-2: #2c2c2c;
+  --hover: #101010;
+  --press: #181818;
+
+  --font: 'Archivo Variable', system-ui, sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --rail: 232px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+
+  color-scheme: dark;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.45;
+  font-variation-settings: 'wdth' 100;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  overscroll-behavior: none;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--fg);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Titres de page : condensés, fins, grands. */
+.page-title {
+  font-size: clamp(34px, 6vw, 52px);
+  font-weight: 300;
+  font-variation-settings: 'wdth' 72;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  margin: 0 0 6px;
+}
+
+.page-sub {
+  color: var(--t2);
+  margin: 0 0 36px;
+  max-width: 60ch;
+}
+
+.group-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--t2);
+  margin: 40px 0 4px;
+  letter-spacing: 0.01em;
+}
+
+.muted {
+  color: var(--t2);
+}
+.faint {
+  color: var(--t3);
+}
+
+/* Transitions de page natives (View Transitions) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease);
+}
+::view-transition-old(root) {
+  animation-name: vt-out;
+}
+::view-transition-new(root) {
+  animation-name: vt-in;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Barre de défilement discrète */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+  border: 3px solid #000;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
