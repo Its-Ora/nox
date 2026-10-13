@@ -93,15 +93,22 @@ jobs:
 
   release:
     name: Publier la release
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Sur un tag v*, ou sur main quand le message de commit contient [release]
+    if: startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[release]'))
     needs: [windows, android]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - id: v
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@v5
         with:
           path: out
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || steps.v.outputs.tag }}
+          name: Nox ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || steps.v.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           files: |
             out/nox-windows/**/*
             out/nox-android/*.apk
