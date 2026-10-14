@@ -86,9 +86,9 @@
   }
   h2 {
     margin: 0;
-    font-weight: 400;
+    font-family: var(--display);
+    font-weight: 600;
     font-size: 24px;
-    font-variation-settings: 'wdth' 80;
   }
   .x {
     width: 40px;

@@ -4,6 +4,7 @@
   import { NAV, ALL } from './lib/nav';
   import Icon from './lib/ui/Icon.svelte';
   import Overlays from './lib/ui/Overlays.svelte';
+  import PermBanner from './lib/ui/PermBanner.svelte';
   import Connect from './routes/Connect.svelte';
   import Pair from './routes/Pair.svelte';
   import Home from './routes/Home.svelte';
@@ -90,6 +91,7 @@
 
     <main class="main">
       <div class="page">
+        <PermBanner />
         {#key app.route}
           <Page />
         {/key}
@@ -186,8 +188,8 @@
     background: #fff;
   }
   .bname {
-    font-weight: 500;
-    font-variation-settings: 'wdth' 85;
+    font-family: var(--display);
+    font-weight: 600;
     font-size: 17px;
   }
   .group {

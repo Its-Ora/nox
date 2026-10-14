@@ -35,7 +35,7 @@
     height: 42px;
     padding: 0 20px;
     border-radius: 999px;
-    font-weight: 500;
+    font-weight: 700;
     white-space: nowrap;
     transition:
       background 160ms var(--ease),

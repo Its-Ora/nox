@@ -5,15 +5,18 @@
 
 <script lang="ts">
   import { app, useResource, act } from '../lib/state.svelte';
+  import { Tween } from 'svelte/motion';
+  import { cubicOut } from 'svelte/easing';
   import { rate, bandwidth, duration, bytes } from '../lib/format';
   import Flow from '../lib/ui/Flow.svelte';
+  import { sensorsOf } from '../lib/sensors';
   import Row from '../lib/ui/Row.svelte';
   import Toggle from '../lib/ui/Toggle.svelte';
   import Button from '../lib/ui/Button.svelte';
   import Async from '../lib/ui/Async.svelte';
   import { ask } from '../lib/ui/confirm.svelte';
 
-  const conn = useResource<any>('connection/', { poll: 2000 });
+  const conn = useResource<any>('connection/', { poll: 1000 });
   const sys = useResource<any>('system/', { poll: 15000 });
   const hosts = useResource<any[]>('lan/browser/pub/', { poll: 20000 });
   const wifi = useResource<any>('wifi/config/');
@@ -24,14 +27,26 @@
     const c = conn.data;
     if (!c) return;
     history.push({ t: Date.now(), down: c.rate_down ?? 0, up: c.rate_up ?? 0 });
-    while (history.length > 80) history.shift();
+    while (history.length > 130) history.shift();
     samples = history.slice();
   });
 
-  const down = $derived(rate(conn.data?.rate_down));
-  const up = $derived(rate(conn.data?.rate_up));
+  // Les chiffres glissent vers la nouvelle valeur au lieu de sauter.
+  const downT = new Tween(0, { duration: 900, easing: cubicOut });
+  const upT = new Tween(0, { duration: 900, easing: cubicOut });
+  $effect(() => {
+    const c = conn.data;
+    if (!c) return;
+    downT.target = c.rate_down ?? 0;
+    upT.target = c.rate_up ?? 0;
+  });
+  const down = $derived(rate(downT.current));
+  const up = $derived(rate(upT.current));
   const online = $derived(hosts.data?.filter((h) => h.active).length);
-  const hottest = $derived(sys.data?.sensors?.length ? Math.max(...sys.data.sensors.map((s: any) => s.value)) : undefined);
+  const hottest = $derived.by(() => {
+    const t = sensorsOf(sys.data);
+    return t.length ? Math.max(...t.map((s) => s.value)) : undefined;
+  });
 
   async function toggleWifi(v: boolean) {
     if (!v && app.where === 'local') {
@@ -65,7 +80,7 @@
     </div>
   </div>
   <div class="chart">
-    <Flow {samples} />
+    <Flow {samples} lagMs={1100} />
   </div>
   <div class="legend">
     <span><i class="solid"></i>Réception</span>
@@ -115,16 +130,16 @@
     display: grid;
   }
   .big {
-    font-size: clamp(76px, 15vw, 132px);
-    font-weight: 200;
-    font-variation-settings: 'wdth' 62;
-    line-height: 0.86;
-    letter-spacing: -0.02em;
+    font-size: clamp(64px, 13vw, 112px);
+    font-family: var(--display);
+    font-weight: 500;
+    line-height: 0.9;
+    letter-spacing: -0.01em;
   }
   .mid {
-    font-size: clamp(40px, 7vw, 60px);
-    font-weight: 200;
-    font-variation-settings: 'wdth' 62;
+    font-size: clamp(34px, 6vw, 52px);
+    font-family: var(--display);
+    font-weight: 500;
     line-height: 0.9;
     color: var(--t2);
   }

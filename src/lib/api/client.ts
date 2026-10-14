@@ -4,7 +4,7 @@ import { mockApi, mockVersion } from './mock';
 
 export const APP_ID = 'fr.theo.nox';
 export const APP_NAME = 'Nox';
-export const APP_VERSION = '0.1.0';
+export const APP_VERSION = '0.2.0';
 
 declare const __DEMO_ONLY__: boolean;
 
